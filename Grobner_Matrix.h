@@ -3,7 +3,7 @@
 //
 #include <vector>
 #include <iostream>
-#include <immintrin.h>
+#include <arm_neon.h>
 using namespace std;
 
 class Grobner_Matrix {
@@ -133,12 +133,21 @@ void Grobner_Matrix::print_line(int i) {
     cout << endl;
 }
 
-int Grobner_Matrix::Simd_xor_line(Grobner_Matrix &grobnerMatrix, int i, int j) {
+/*int Grobner_Matrix::Simd_xor_line(Grobner_Matrix &grobnerMatrix, int i, int j) {
     //返回异或后最大的非零位
     int max_bit=0;
-    for (int k = 0; k < m_; k++) {
+    int k=0;
+    for (k = 0; k+4<=m_; k+=4) {
+        int32x4_t mjk=vld1q_s32(&matrix[j][k]);
+        int32x4_t mik=vld1q_s32(&grobnerMatrix.matrix[i][k]);
+        mjk=veorq_s32(mjk,mik);
+        vst1q_s32(&matrix[j][k],mjk);
+        //matrix[j][k] ^= grobnerMatrix.matrix[i][k];
+    }
+    while(k<m_){
         matrix[j][k] ^= grobnerMatrix.matrix[i][k];
+        k++;
     }
     max_bit = get_max_bit(j);
     return max_bit;
-}
+}*/
