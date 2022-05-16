@@ -454,6 +454,7 @@ int OpenMP(){
                     eliminator.matrix[new_max_bit][k]=eliminatedElement.matrix[row_index[i]][k];
                 }
             }
+
         }
         vector<int>new_row_index;
         for(i=0;i<eliminatedElement.row_index.size();i++){
