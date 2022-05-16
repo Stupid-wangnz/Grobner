@@ -3,7 +3,6 @@
 //
 #include <vector>
 #include <iostream>
-#include <arm_neon.h>
 using namespace std;
 
 class Grobner_Matrix {
@@ -33,6 +32,8 @@ public:
     vector<int> get_5_line(int s);
     vector<int> get_line(int s,int num);
     void print_line(int i);
+
+    void clear();
 };
 
 Grobner_Matrix::Grobner_Matrix() {
@@ -131,6 +132,16 @@ void Grobner_Matrix::print_line(int i) {
         }
     }
     cout << endl;
+}
+
+void Grobner_Matrix::clear() {
+    //清空矩阵
+    for (int i = 0; i <n ; i++) {
+        for (int j = 0; j <m_ ; j++) {
+            matrix[i][j] = 0;
+        }
+    }
+    row_index.clear();
 }
 
 /*int Grobner_Matrix::Simd_xor_line(Grobner_Matrix &grobnerMatrix, int i, int j) {
