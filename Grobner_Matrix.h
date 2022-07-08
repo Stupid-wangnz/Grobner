@@ -3,6 +3,9 @@
 //
 #include <vector>
 #include <iostream>
+#include<semaphore.h>
+#include <emmintrin.h>
+#include <immintrin.h>
 using namespace std;
 
 class Grobner_Matrix {
@@ -28,7 +31,7 @@ public:
     int Simd_xor_line(Grobner_Matrix&,int i,int j);
     int get_max_bit(int i);
     void input_line(int i,vector<int>&);
-
+    int dxor(vector<int>l,int j);
     vector<int> get_5_line(int s);
     vector<int> get_line(int s,int num);
     void print_line(int i);
@@ -53,10 +56,7 @@ Grobner_Matrix::~Grobner_Matrix() {
 
 void Grobner_Matrix::init() {
     matrix = new int*[n];
-    if(m%32==0)
-        m_ = m/32;
-    else
-        m_ = m/32+1;
+    m_=(m-1)/32+1;
 
     for (int i = 0; i <n ; i++) {
         matrix[i] = new int[m_];
@@ -71,9 +71,17 @@ void Grobner_Matrix::set_bit(int i, int j) {
 
 int Grobner_Matrix::xor_line(Grobner_Matrix &grobnerMatrix,int i,int j) {
     //返回异或后最大的非零位
-    int max_bit=0;
+    int max_bit=-1;
     for (int k = 0; k < m_; k++) {
         matrix[j][k] ^= grobnerMatrix.matrix[i][k];
+    }
+    max_bit = get_max_bit(j);
+    return max_bit;
+}
+int Grobner_Matrix::dxor(vector<int> l,int j) {
+    int max_bit=0;
+    for (int k = 0; k < m_; k++) {
+        matrix[j][k] ^= l[k];
     }
     max_bit = get_max_bit(j);
     return max_bit;
@@ -109,15 +117,13 @@ vector<int> Grobner_Matrix::get_line(int s,int num) {
 
 int Grobner_Matrix::get_max_bit(int i) {
     //获取第i行最大的非零位
-    int max_bit=0;
+    int max_bit=-1;
     for (int j = 0; j < m_; j++) {
-        if(matrix[i][j]!=0) {
             for (int k = 0; k < 32; k++) {
-                if (matrix[i][j] & (1 << k))
+                if ((matrix[i][j] & (1 << k))!=0)
                     max_bit= j * 32 + k;
             }
         }
-    }
     return max_bit;
 }
 
@@ -144,15 +150,15 @@ void Grobner_Matrix::clear() {
     row_index.clear();
 }
 
-/*int Grobner_Matrix::Simd_xor_line(Grobner_Matrix &grobnerMatrix, int i, int j) {
+int Grobner_Matrix::Simd_xor_line(Grobner_Matrix &grobnerMatrix, int i, int j) {
     //返回异或后最大的非零位
     int max_bit=0;
     int k=0;
     for (k = 0; k+4<=m_; k+=4) {
-        int32x4_t mjk=vld1q_s32(&matrix[j][k]);
-        int32x4_t mik=vld1q_s32(&grobnerMatrix.matrix[i][k]);
-        mjk=veorq_s32(mjk,mik);
-        vst1q_s32(&matrix[j][k],mjk);
+        __m128i mjk=_mm_load_si128((__m128i*)&matrix[j][k]);
+        __m128i mik=_mm_load_si128((__m128i*)&grobnerMatrix.matrix[i][k]);
+        mjk=_mm_xor_si128(mjk,mik);
+        _mm_store_si128((__m128i*)&matrix[j][k],mjk);
         //matrix[j][k] ^= grobnerMatrix.matrix[i][k];
     }
     while(k<m_){
@@ -161,4 +167,4 @@ void Grobner_Matrix::clear() {
     }
     max_bit = get_max_bit(j);
     return max_bit;
-}*/
+}

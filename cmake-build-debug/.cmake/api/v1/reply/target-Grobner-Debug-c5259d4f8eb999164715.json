@@ -13,7 +13,9 @@
 	{
 		"commands" : 
 		[
-			"add_executable"
+			"add_executable",
+			"link_directories",
+			"include_directories"
 		],
 		"files" : 
 		[
@@ -27,7 +29,19 @@
 			{
 				"command" : 0,
 				"file" : 0,
-				"line" : 6,
+				"line" : 17,
+				"parent" : 0
+			},
+			{
+				"command" : 1,
+				"file" : 0,
+				"line" : 15,
+				"parent" : 0
+			},
+			{
+				"command" : 2,
+				"file" : 0,
+				"line" : 14,
 				"parent" : 0
 			}
 		]
@@ -38,7 +52,17 @@
 			"compileCommandFragments" : 
 			[
 				{
-					"fragment" : "-g"
+					"fragment" : " -fopenmp -g"
+				},
+				{
+					"fragment" : "-std=gnu++14"
+				}
+			],
+			"includes" : 
+			[
+				{
+					"backtrace" : 3,
+					"path" : "E:/mpi/sdk/Include"
 				}
 			],
 			"language" : "CXX",
@@ -62,12 +86,22 @@
 		"commandFragments" : 
 		[
 			{
-				"fragment" : "-g",
+				"fragment" : "-fopenmp -g",
 				"role" : "flags"
 			},
 			{
 				"fragment" : "",
 				"role" : "flags"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "-LE:\\mpi\\sdk\\Lib\\x64",
+				"role" : "libraryPath"
+			},
+			{
+				"backtrace" : 1,
+				"fragment" : "-lmsmpi",
+				"role" : "libraries"
 			},
 			{
 				"fragment" : "-lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32",
