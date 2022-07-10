@@ -26,8 +26,8 @@ public:
     explicit Grobner_Matrix(int n,int m);
     ~Grobner_Matrix();
     void init();
-    void set_bit(int i,int j);
-    int xor_line(Grobner_Matrix&,int i,int j);
+    void set_bit(int i,int j) const;
+    int xor_line(const Grobner_Matrix&,const int i,const int j);
     int Simd_xor_line(Grobner_Matrix&,int i,int j);
     int get_max_bit(int i);
     void input_line(int i,vector<int>&);
@@ -64,12 +64,12 @@ void Grobner_Matrix::init() {
     row_index.resize(n,-1);
 }
 
-void Grobner_Matrix::set_bit(int i, int j) {
+void Grobner_Matrix::set_bit(int i, int j) const {
     //将第i行的第j个bit置1
     matrix[i][j/32] |= (1<<(j%32));
 }
 
-int Grobner_Matrix::xor_line(Grobner_Matrix &grobnerMatrix,int i,int j) {
+int Grobner_Matrix::xor_line(const Grobner_Matrix& grobnerMatrix,const int i,const int j) {
     //返回异或后最大的非零位
     int max_bit=-1;
     for (int k = 0; k < m_; k++) {
@@ -90,7 +90,7 @@ int Grobner_Matrix::dxor(vector<int> l,int j) {
 void Grobner_Matrix::input_line(int i, vector<int> &line) {
     //将第i行的数据输入到矩阵中
     for(int j : line){
-        set_bit(i,j);
+        matrix[i][j/32] |= (1<<(j%32));
     }
     row_index[i] = i;
 }

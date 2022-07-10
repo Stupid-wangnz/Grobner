@@ -7,20 +7,15 @@
 #include<sys/time.h>
 #include "omp.h"
 #include <mpi.h>
-
 using namespace std;
-
 typedef struct {
     int t_id;
     int n;
     vector<int> v;
 }threadParam_t;
-
 int NUM_THREADS=4;
-
 int n=8399;
 int eliminator_count=106,elminated_element=4535;
-
 Grobner_Matrix eliminator(n,n);
 Grobner_Matrix eliminatedElement(elminated_element,n);
 void * threadfunc(void*param){
@@ -508,23 +503,26 @@ void readdata(){
 }
 void super(int rank,int num_proc)
 {
-    vector<int> row_index=eliminatedElement.row_index;
-    int i,old_max_bit,new_max_bit=0;
-//#pragma omp parallel for private(i,old_max_bit,new_max_bit)
-    for(i=rank;i<row_index.size();i+=num_proc){
-        old_max_bit=eliminatedElement.get_max_bit(row_index[i]);
-        while(old_max_bit>=0&&eliminator.row_index[old_max_bit]!=-1){
+
+    int i,old_max_bit,new_max_bit;
+#pragma omp parallel for private(i,old_max_bit,new_max_bit)
+    for(i=rank;i<eliminatedElement.row_index.size();i+=num_proc){
+        if(eliminatedElement.row_index[i]==-1)
+            continue;
+        old_max_bit=eliminatedElement.get_max_bit(eliminatedElement.row_index[i]);
+        if(old_max_bit==-1)
+            continue;
+        while(eliminator.row_index[old_max_bit]!=-1){
             //消元子还没消元完
-            new_max_bit=eliminatedElement.xor_line(eliminator,old_max_bit,row_index[i]);
-            old_max_bit=new_max_bit;
+             new_max_bit=eliminatedElement.xor_line(eliminator,old_max_bit,eliminatedElement.row_index[i]);
             //如果new_max_bit不在eliminator的row_index中，则被消元子消元完毕
             if(new_max_bit<0){
                 break;
             }
+            old_max_bit=new_max_bit;
 
         }
     }
-
 }
 vector<int>new_eliner;
 void MPIfunc(){
@@ -533,8 +531,8 @@ void MPIfunc(){
     MPI_Status status;
     MPI_Comm_size(MPI_COMM_WORLD, &num_proc);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);	//获取当前进程号
-    cout<<rank<<endl;
 
+    cout<<1<<endl;
     if(rank==0){
         //0进程分发数据
         timeval t_start;
@@ -558,7 +556,6 @@ void MPIfunc(){
             }
             //消元
             super(rank,num_proc);
-            cout<<0<<endl;
             //接收新的被消元子
             for (int i = 0; i <eliminatedElement.row_index.size(); i++)
             {
@@ -582,7 +579,6 @@ void MPIfunc(){
                 new_max_bit=eliminatedElement.get_max_bit(row_index[i]);
                 if(new_max_bit<0){
                     //消元子消元完
-                    /*cout<<"kong"<<endl;*/
                     eliminatedElement.row_index[i]=-1;
                     continue;
                 }
@@ -590,8 +586,8 @@ void MPIfunc(){
                     if (eliminator.row_index[new_max_bit] == -1) {
                         eliminator.row_index[new_max_bit] = new_max_bit;
                         new_eliner.push_back(new_max_bit);
-                        /*cout << "new eliminator: "<<row_index[i] << endl;
-                        eliminatedElement.print_line(row_index[i]);*/
+                        cout << "new eliminator: "<<row_index[i] << endl;
+                        /*eliminatedElement.print_line(row_index[i]);*/
                         eliminatedElement.row_index[i] = -1;
                         for (int k = 0; k < eliminatedElement.m_; k++) {
                             eliminator.matrix[new_max_bit][k] = eliminatedElement.matrix[row_index[i]][k];
@@ -642,7 +638,7 @@ void MPIfunc(){
                 MPI_Recv(eliminatedElement.matrix[eliminatedElement.row_index[i]], eliminatedElement.m_, MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
             }
             super(rank,num_proc);
-            cout<<rank<<endl;
+
             for (int i = rank; i < eliminatedElement.row_index.size(); i += num_proc)
             {
                 MPI_Send(eliminatedElement.matrix[eliminatedElement.row_index[i]], eliminatedElement.m_, MPI_INT, 0, 1, MPI_COMM_WORLD);
